@@ -1,6 +1,8 @@
 import sys
 import requests
 import os
+from operator import itemgetter
+from decimal import Decimal
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,9 +20,11 @@ with open('wearable_keywords.txt', 'r') as file:
 
 # Do not perform search if not clothing-related
 is_wearable = False
+search_query = search_query.lower()
 for wearable in wearable_keywords:
-    if wearable.find(search_query) != -1:
+    if search_query.find(wearable) > 0:
         is_wearable = True
+        break
 
 if not is_wearable:
     print('Not a valid search term!')
@@ -38,5 +42,10 @@ params = {
 response = requests.get(url, params=params)
 results = response.json()
 
-for result in results['shopping_results']:
+# Sort
+shopping_results = results['shopping_results']
+shopping_results = sorted(shopping_results, key=lambda k: Decimal(k['price'].strip('$')))
+
+# Format output
+for result in shopping_results:
     print(result['title'] + ' - ' + result['price'] + '\n' + result['link'] + '\n')
