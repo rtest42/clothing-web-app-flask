@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Armoire</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>shopping_cart!</h1>
+    <ul>
+        <li><a href="{{ url_for('search') }}">Search</a></li>
+        <li><a href="{{ url_for('shopping_cart') }}">Shopping Cart</a></li>
+        <li><a href="{{ url_for('user_photo_upload') }}">User Photo Upload</a></li>
+    </ul>
+</body>
+</html>
