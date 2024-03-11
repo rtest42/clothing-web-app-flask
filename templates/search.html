@@ -11,6 +11,12 @@
 		<input type="text" id="search" name="search"><br>
 		<input type="submit" value="Submit"><br>
 	</form>
+	<select name="filter" id="filter">
+		<option value="relevance">Relevance</option>
+		<option value="review">Review Score</option>
+		<option value="low2high">Low To High</option>
+		<option value="high2low">High To Low</option>
+	</select>
 	<p id="result"></p>
         <li><a href="{{ url_for('search') }}">Search</a></li>
         <li><a href="{{ url_for('shopping_cart') }}">Shopping Cart</a></li>

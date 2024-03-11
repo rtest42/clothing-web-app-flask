@@ -23,7 +23,7 @@ def search():
         # Default plan: 100 uses per month
         SERPAPI_KEY = os.getenv('SERPAPI_KEY')
 
-        search_query = request.form.get('search')
+        search_query = request.form.get('search').lower().strip()
         wearable_keywords = []
         with open('wearable_keywords.txt', 'r') as file:
             for keyword in file:
@@ -31,7 +31,6 @@ def search():
 
         # Do not perform search if not clothing-related
         is_wearable = False
-        search_query = search_query.lower().strip()
         for wearable in wearable_keywords:
             if search_query.find(wearable) >= 0:
                 is_wearable = True
@@ -45,16 +44,17 @@ def search():
         params = {
             'q': search_query,
             'api_key': SERPAPI_KEY,
-            'engine': 'google_shopping'
+            'engine': 'google_shopping',
+            'tbs': 'p_ord:pd'
         }
 
         # Get results in JSON
         response = requests.get(url, params=params)
         results = response.json()
 
-        # Sort
         shopping_results = results['shopping_results']
-        shopping_results = sorted(shopping_results, key=lambda k: Decimal(k['price'].strip('$')))
+        # Sort
+        # shopping_results = sorted(shopping_results, key=lambda k: Decimal(k['price'].strip('$')))
 
         return render_template('search_passed.html', results=shopping_results)
     else:
@@ -67,8 +67,13 @@ def shopping_cart():
 @app.route('/user-photo-upload')
 def user_photo_upload():
     return render_template('user_photo_upload.html')
+    
+# All variables that should only have to be set once
+def main():
+    load_dotenv()
+    
 
 if __name__ == '__main__':
-    load_dotenv()
+    main()
     app.run(debug=True)
     
