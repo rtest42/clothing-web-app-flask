@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect
-import sys
 import sqlite3
 import requests
 import os
@@ -70,8 +69,9 @@ def user_photo_upload():
 @app.route('/shop/', methods=['GET', 'POST'])
 def shop():
     if request.method == 'GET':
-        return render_template('shop.html')
+        return render_template('shop.html', shopping_err=False)
     else:
+        global results
         if request.form.get('submit') == 'Submit':
             # SerpAPI key obtained by signing up
             # Default plan: 100 uses per month
@@ -92,9 +92,9 @@ def shop():
 
             # Do not perform search if not clothing-related
             if not is_wearable:
-                return redirect('shop.html')
+                return render_template('shop.html', shopping_err=True)
 
-            filter = {
+            dropdown = {
                 'relevance': 'p_ord:r',
                 'review': 'p_ord:rv',
                 'low2high': 'p_ord:p',
@@ -107,12 +107,11 @@ def shop():
                 'q': search_query,
                 'api_key': serpapi_key,
                 'engine': 'google_shopping',
-                'tbs': filter[request.form.get('filter')]
+                'tbs': dropdown[request.form.get('filter')]
             }
 
             # Get results in JSON
             response = requests.get(url, params=params)
-            global results
             results = response.json()['shopping_results']
         else:
             with sqlite3.connect(database) as db:
@@ -126,7 +125,7 @@ def shop():
                 cursor.execute(sql_cmd, (title, price, link))
                 db.commit()
 
-        return render_template('shop.html', results=results)
+        return render_template('shop.html', shopping_err=False, results=results)
 
 
 @app.route('/cart', methods=['GET', 'POST'])
@@ -143,9 +142,9 @@ def cart():
     else:
         with sqlite3.connect(database) as db:
             cursor = db.cursor()
-            id = request.form.get('submit')
+            item_id = request.form.get('submit')
             sql_cmd = "DELETE FROM armoire WHERE id = ?"
-            cursor.execute(sql_cmd, (id,))
+            cursor.execute(sql_cmd, (item_id,))
             db.commit()
             sql_cmd = "SELECT * FROM armoire"
             cursor.execute(sql_cmd)
@@ -159,12 +158,15 @@ def cart():
 def contact():
     return render_template('contact.html')
 
+
 def init_database():
     with sqlite3.connect(database) as db:
         cursor = db.cursor()
-        sql_cmd = "CREATE TABLE IF NOT EXISTS armoire (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, price REAL, link TEXT);"
+        sql_cmd = ("CREATE TABLE IF NOT EXISTS armoire (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, price REAL, "
+                   "link TEXT);")
         cursor.execute(sql_cmd)
         db.commit()
+
 
 # All variables that should only have to be set once
 def main():

@@ -17,4 +17,7 @@
             <button type="submit" name="submit" value="{{ result }}">Add</button>
         </form>
 	{% endfor %}
+    {% if shopping_err == True %}
+        <p>Search invalid! No API was requested.</p>
+    {% endif %}
 {% endblock %}
