@@ -9,3 +9,12 @@ __pycache__/
 # Environments
 .env
 venv/
+
+# Pycharm
+.idea/**
+
+# Databases
+*.db
+
+# JSON
+*.json

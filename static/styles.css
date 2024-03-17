@@ -1,0 +1,12 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#top-nav a {
+    text-align: center;
+    margin: auto;
+}
+
+#top-nav #title {
+    display: inline;
+}
