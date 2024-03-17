@@ -12,7 +12,7 @@
     </form>
     {% for result in results %}
 		<p>{{ result["title"] }} - {{ result["price"] }} - {{ result["link"] }}</p>
-		<img src={{ result["thumbnail"] }}>
+		<img src="{{ result['thumbnail'] }}">
         <form action="/shop" method="post">
             <button type="submit" name="submit" value="{{ result }}">Add</button>
         </form>

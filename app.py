@@ -4,14 +4,13 @@ import sqlite3
 import requests
 import os
 import ast
-import json
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 database = "armoire.db"
 results = None
 
-@app.route('/index')
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -57,9 +56,7 @@ def search():
 
         # Get results in JSON
         response = requests.get(url, params=params)
-        results = response.json()
-
-        shopping_results = results['shopping_results']
+        shopping_results = response.json()['shopping_results']
         return render_template('search_passed.html', results=shopping_results)
     else:
         return render_template('search.html')
