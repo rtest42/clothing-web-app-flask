@@ -2,6 +2,12 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
+#top-nav {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}
+
 #top-nav a {
     text-align: center;
     margin: auto;
@@ -9,4 +15,8 @@ body {
 
 #top-nav #title {
     display: inline;
+}
+
+.err {
+    color: red;
 }
