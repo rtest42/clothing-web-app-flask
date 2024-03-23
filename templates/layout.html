@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
 
@@ -8,23 +9,28 @@
 
     <title>The Armoire</title>
 </head>
+
 <body>
+    <!--Nav Bar Section-->
     <nav id="top-nav">
-        <h1 id="title">The Armoire</h1></div>
-        <a href="/">Home</a>
+        <!--Brand name hyperlink to home page with black color-->
+        <h1 id="title"><a href="/" style="text-decoration:none"><span style="color: black">The Armoire</span></a></h1>
+        </div>
         <a href="/shop">Shop</a>
         <a href="/cart">Cart</a>
         <a href="/contact">Contact</a>
         <a href="/login">Login</a>
         <a href="/logout">Logout</a>
         <a href="/register">Register</a>
+        <!--Main body Section-->
         {% if user|length == 0 %}
-            <p>You're a guest!</p>
+        <p>You're a guest!</p>
         {% else %}
-            <p>Logged in as {{ user }}</p>
+        <p>Logged in as {{ user }}</p>
         {% endif %}
     </nav>
     {% block main %}
     {% endblock %}
 </body>
+
 </html>

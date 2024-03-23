@@ -17,6 +17,10 @@ body {
     display: inline;
 }
 
-.err {
+a{
+    color:black
+}
+
+a:hover{
     color: red;
 }
