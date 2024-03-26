@@ -1,1 +1,20 @@
+# Windows
+
+# MacOS
+.DS_Store
+
+# Python
+__pycache__/
+
+# Environments
 .env
+venv/
+
+# Pycharm
+.idea/**
+
+# Databases
+*.db
+
+# JSON
+*.json

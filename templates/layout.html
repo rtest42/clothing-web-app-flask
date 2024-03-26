@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <link href="../static/favicon.ico" rel="icon">
+    <link href="../static/styles.css" rel="stylesheet">
+
+    <title>The Armoire</title>
+</head>
+
+<body>
+    <!--Nav Bar Section-->
+    <nav id="top-nav">
+        <!--Brand name hyperlink to home page with black color-->
+        <h1 id="title"><a href="/" style="text-decoration:none"><span style="color: black">The Armoire</span></a></h1>
+        </div>
+        <a href="/shop">Shop</a>
+        <a href="/cart">Cart</a>
+        <a href="/contact">Contact</a>
+        <a href="/login">Login</a>
+        <a href="/logout">Logout</a>
+        <a href="/register">Register</a>
+        <!--Main body Section-->
+        {% if user|length == 0 %}
+        <p>You're a guest!</p>
+        {% else %}
+        <p>Logged in as {{ user }}</p>
+        {% endif %}
+    </nav>
+    {% block main %}
+    {% endblock %}
+</body>
+
+</html>

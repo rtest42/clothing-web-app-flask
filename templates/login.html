@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block main %}
+    <form action="/login" method="post">
+        <input id="username" name="username" placeholder="Username" type="text">
+        <input id="password" name="password" placeholder="Password" type="password">
+        <button type="submit">Login</button>
+    </form>
+    {% if err_login %}
+        <p class="err">Error logging in.</p>
+    {% endif %}
+{% endblock %}
