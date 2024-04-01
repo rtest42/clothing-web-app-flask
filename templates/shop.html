@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block main %}
+    {% if err %}
+        <p style="color:red;">{{ err }}</p>
+    {% endif %}
     <form action="/shop" method="post">
         <input type="text" id="shop" name="shop" placeholder="Search...">
         <select name="filter" id="filter">
@@ -10,14 +13,11 @@
 	    </select>
         <input type="submit" name="submit" value="Submit">
     </form>
-    {% for result in results %}
-		<p>{{ result["title"] }} - {{ result["price"] }} - {{ result["link"] }}</p>
-		<img src="{{ result['thumbnail'] }}">
-        <form action="/shop" method="post">
-            <button type="submit" name="submit" value="{{ result }}">Add</button>
-        </form>
-	{% endfor %}
-    {% if shopping_err == True %}
-        <p>Search invalid! No API was requested.</p>
+    {% if results %}
+        {% for result in results %}
+            <p>{{ result["title"] }} - {{ result["price"] }} - {{ result["link"] }}</p>
+            <img src="{{ result['thumbnail'] }}">
+            <button type="button" name="button" value="{{ result }}" onclick="myFunction()">Add</button>
+        {% endfor %}
     {% endif %}
 {% endblock %}
