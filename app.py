@@ -94,7 +94,7 @@ def shop():
     return render_template('shop.html', err=err, results=shopping_results)
 
 
-@app.route('/add_to_cart', methods=['POST'])
+@app.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
     result = request.form.get('submit')
     result = ast.literal_eval(result)
@@ -102,9 +102,16 @@ def add_to_cart():
     price = result['extracted_price']
     link = result['link']
     username = session.get('username', '')
-    read_query(True, "INSERT INTO cart (username, title, price, link) VALUES (?, ?, ?, ?)", username, title, price, link)
+    read_query(True, "INSERT INTO cart (username, title, price, link) VALUES (?, ?, ?, ?)", username, title, price,
+               link)
     # Return nothing new
     return '', 204
+
+
+# @app.route('/remove-from-cart', methods=['POST'])
+# def remove_from_cart():
+#    read_query(True, "DELETE FROM cart WHERE id = ?", request.form.get('submit'))
+#    return '', 204
 
 
 @app.route('/user-photo-upload')
@@ -126,7 +133,7 @@ def login():
     session.clear()
     err = None
     if request.method == 'POST':
-        username = read_query(False,"SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        username = read_query(False, "SELECT * FROM users WHERE username = ?", request.form.get("username"))
         if request.form.get("username") == '' or username is None:
             err = "Invalid username"
         elif username[2] != request.form.get("password"):
@@ -151,7 +158,8 @@ def register():
         elif username is not None:
             err = "Username already exists"
         else:
-            read_query(True, "INSERT INTO users (username, password) VALUES (?, ?);", request.form.get("username"), request.form.get("password"))
+            read_query(True, "INSERT INTO users (username, password) VALUES (?, ?);", request.form.get("username"),
+                       request.form.get("password"))
 
             flash("You have successfully registered for an account.")
             return redirect('/')
@@ -172,8 +180,10 @@ def contact():
 
 
 def init_database():
-    read_query(True, "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, title TEXT, price REAL, link TEXT);")
-    read_query(True, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
+    read_query(True,
+               "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, title TEXT, price REAL, link TEXT);")
+    read_query(True,
+               "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
     # Treat an empty username as a guest
     read_query(True, "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');")

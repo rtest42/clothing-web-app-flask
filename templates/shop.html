@@ -17,7 +17,7 @@
         {% for result in results %}
             <p>{{ result["title"] }} - {{ result["price"] }} - {{ result["link"] }}</p>
             <img src="{{ result['thumbnail'] }}">
-            <form action="/add_to_cart" method="post">
+            <form action="/add-to-cart" method="post">
                 <button type="submit" name="submit" value="{{ result }}" onclick="addToCart()">Add</button>
             </form>
         {% endfor %}
