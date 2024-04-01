@@ -1,8 +1,5 @@
 # Windows
 
-# Flask
-./flask_sesion
-
 # MacOS
 .DS_Store
 
@@ -21,3 +18,6 @@ venv/
 
 # JSON
 *.json
+
+# Flask
+/flask_session
