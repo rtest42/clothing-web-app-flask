@@ -3,6 +3,7 @@ from flask_session import Session
 import sqlite3
 import requests
 import os
+import ast
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -31,11 +32,14 @@ def after_request(response):
     return response
 
 
-def read_query(sql_cmd, *args):
+def read_query(get_all, sql_cmd, *args):
     with sqlite3.connect(database) as db:
         cursor = db.cursor()
         cursor.execute(sql_cmd, args)
-        query = cursor.fetchall()
+        if get_all:
+            query = cursor.fetchall()
+        else:
+            query = cursor.fetchone()
         db.commit()
         return query
 
@@ -90,6 +94,19 @@ def shop():
     return render_template('shop.html', err=err, results=shopping_results)
 
 
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    result = request.form.get('submit')
+    result = ast.literal_eval(result)
+    title = result['title']
+    price = result['extracted_price']
+    link = result['link']
+    username = session.get('username', '')
+    read_query(True, "INSERT INTO cart (username, title, price, link) VALUES (?, ?, ?, ?)", username, title, price, link)
+    # Return nothing new
+    return '', 204
+
+
 @app.route('/user-photo-upload')
 def user_photo_upload():
     return render_template('user_photo_upload.html')
@@ -97,30 +114,10 @@ def user_photo_upload():
 
 @app.route('/cart', methods=['GET', 'POST'])
 def cart():
-    with sqlite3.connect(database) as db:
-        cursor = db.cursor()
-        sql_cmd = "SELECT * FROM cart WHERE username = ?"
-        cursor.execute(sql_cmd, (session['user'][1]))
-        shopping_cart = cursor.fetchall()
-        db.commit()
-    #if request.method == 'GET':
-    #    with sqlite3.connect(database) as db:
-    #        cursor = db.cursor()
-    #        sql_cmd = "SELECT * FROM cart WHERE username = ?"
-    #        cursor.execute(sql_cmd, (user,))
-    #        shopping_cart = cursor.fetchall()
-    #        db.commit()
-    #else:
-    #    with sqlite3.connect(database) as db:
-    #        cursor = db.cursor()
-    #        item_id = request.form.get('submit')
-    #        sql_cmd = "DELETE FROM cart WHERE id = ?"
-    #        cursor.execute(sql_cmd, (item_id,))
-    #        sql_cmd = "SELECT * FROM cart"
-    #        cursor.execute(sql_cmd)
-    #        shopping_cart = cursor.fetchall()
-    #        db.commit()
+    if request.method == 'POST':
+        read_query(True, "DELETE FROM cart WHERE id = ?", request.form.get('submit'))
 
+    shopping_cart = read_query(True, "SELECT * FROM cart WHERE username = ?", session.get('username', ''))
     return render_template('cart.html', cart=shopping_cart)
 
 
@@ -129,18 +126,17 @@ def login():
     session.clear()
     err = None
     if request.method == 'POST':
-        with sqlite3.connect(database) as db:
-            cursor = db.cursor()
-            sql_cmd = "SELECT * FROM users WHERE username = ?"
-            cursor.execute(sql_cmd, (request.form.get("username"),))
-            get_username = cursor.fetchone()
-            if get_username is None or get_username[2] != request.form.get("password"):
-                err = "Invalid username or password"
-            else:
-                session['user'] = get_username
+        username = read_query(False,"SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        if request.form.get("username") == '' or username is None:
+            err = "Invalid username"
+        elif username[2] != request.form.get("password"):
+            err = "Invalid password"
+        else:
+            session['user_id'] = username[0]
+            session['username'] = username[1]
 
-                flash("You have successfully logged in.")
-                return redirect('/')
+            flash("You have successfully logged in.")
+            return redirect('/')
 
     return render_template('login.html', err=err)
 
@@ -149,20 +145,16 @@ def login():
 def register():
     err = None
     if request.method == 'POST':
-        with sqlite3.connect(database) as db:
-            cursor = db.cursor()
-            sql_cmd = "SELECT * FROM users WHERE username = ?"
-            cursor.execute(sql_cmd, (request.form.get("username"),))
-            get_users = cursor.fetchall()
-            if len(get_users) != 0:
-                err = "Username already exists"
-            else:
-                sql_cmd = "INSERT INTO users (username, password) VALUES (?, ?);"
-                cursor.execute(sql_cmd, (request.form.get("username"), request.form.get("password")))
-                db.commit()
+        username = read_query(False, "SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        if request.form.get("username") == '':
+            err = "Username cannot be empty"
+        elif username is not None:
+            err = "Username already exists"
+        else:
+            read_query(True, "INSERT INTO users (username, password) VALUES (?, ?);", request.form.get("username"), request.form.get("password"))
 
-                flash("You have successfully registered for an account.")
-                return redirect('/')
+            flash("You have successfully registered for an account.")
+            return redirect('/')
 
     return render_template('register.html', err=err)
 
@@ -180,24 +172,16 @@ def contact():
 
 
 def init_database():
-    with sqlite3.connect(database) as db:
-        cursor = db.cursor()
-        sql_cmd = ("CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, "
-                   "title TEXT, price REAL, link TEXT);")
-        cursor.execute(sql_cmd)
-        sql_cmd = ("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT "
-                   "NULL, password TEXT NOT NULL);")
-        cursor.execute(sql_cmd)
-        sql_cmd = "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);"
-        cursor.execute(sql_cmd)
-        # Guest user
-        # sql_cmd = "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');"
-        # cursor.execute(sql_cmd)
-        db.commit()
+    read_query(True, "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, title TEXT, price REAL, link TEXT);")
+    read_query(True, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
+    read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
+    # Treat an empty username as a guest
+    read_query(True, "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');")
 
 
 # All variables that should only have to be set once
 def main():
+    # Load environment variables
     load_dotenv()
     # Make sure SerpAPI key is set
     if not os.environ.get("serpapi_key"):
@@ -206,6 +190,7 @@ def main():
     if not os.path.isfile(database):
         open(database, 'x').close()
         init_database()
+    # Run Flask
     app.run(debug=True)
 
 
