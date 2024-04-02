@@ -6,13 +6,18 @@
         <p style="color:red;">{{ err }}</p>
     {% endif %}
     <form action="/user-photo-upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" id="file">
+        <input type="file" name="file" accept="image/*">
         <input type="submit" name="submit" value="Submit">
     </form>
     {% for image in images %}
-        <img src="data:{{ image[4] }};base64,{{ image[2] }}">
-        <form action="/user-photo-upload" method="post">
-            <button type="submit" name="submit" value="{{ image[0] }}" onclick="removeFile()">Remove</button>
-        </form>
+        <div class="thumbnail">
+            <img src="data:{{ image[3] }};base64,{{ image[2]|decode }}">
+        </div>
+        <div class="info">
+            <form action="/user-photo-upload" method="post">
+                <button type="submit" name="submit" value="{{ image[0] }}" onclick="removeFile()">Remove</button>
+            </form>
+        </div>
+        <div class="break"></div>
     {% endfor %}
 {% endblock %}

@@ -4,11 +4,13 @@ import sqlite3
 import requests
 import os
 import ast
+import base64
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 # Filters
 app.jinja_env.filters["usd"] = lambda value: f"${value:,.2f}"
+app.jinja_env.filters["decode"] = lambda value: value.decode('utf-8')
 # Auto-reload templates
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Use filesystem instead of cookies
@@ -122,15 +124,20 @@ def user_photo_upload():
     err = None
     username = session.get('username', '')
     if request.method == 'POST':
-        if request.form.get("submit") == 'Submit':
-            # No checks for file type/extension yet...
-            # TODO: add file extension check
+        if not request.files.get('file'):
+            err = "No file selected"
+        elif request.form.get("submit") == 'Submit':
             f = request.files.get('file')
             file_name = f.filename
-            with open(file_name, 'rb') as fp:
-                img = fp.read()
-            content_type = f.content_type
-            read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img, content_type)
+            if not os.path.isfile(file_name):
+                err = "File not in directory"
+            else:
+                with open(file_name, 'rb') as fp:
+                    img = base64.b64encode(fp.read())
+
+                # img += "=" * ((4 - len(img) % 4) % 4)
+                content_type = f.content_type
+                read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img, content_type)
         else:
             read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
 
