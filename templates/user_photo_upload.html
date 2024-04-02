@@ -1,5 +1,18 @@
 <!-- Users upload their clothing here -->
 {% extends "layout.html" %}
 {% block main %}
-    <p>WIP user photo upload</p>
+    <p>Upload your photos here.</p>
+    {% if err %}
+        <p style="color:red;">{{ err }}</p>
+    {% endif %}
+    <form action="/user-photo-upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <input type="submit" name="submit" value="Submit">
+    </form>
+    {% for image in images %}
+        <img src="data:{{ image[4] }};base64,{{ image[2] }}">
+        <form action="/user-photo-upload" method="post">
+            <button type="submit" name="submit" value="{{ image[0] }}" onclick="removeFile()">Remove</button>
+        </form>
+    {% endfor %}
 {% endblock %}

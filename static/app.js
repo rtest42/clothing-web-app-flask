@@ -5,3 +5,7 @@ function addToCart(item) {
 function removeFromCart() {
     alert("Removing from cart...");
 }
+
+function removeFile() {
+    alert("Removing file...");
+}

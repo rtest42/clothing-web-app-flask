@@ -7,7 +7,7 @@ import ast
 from dotenv import load_dotenv
 
 app = Flask(__name__)
-# USD filter
+# Filters
 app.jinja_env.filters["usd"] = lambda value: f"${value:,.2f}"
 # Auto-reload templates
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -117,9 +117,25 @@ def add_to_cart():
 #    return '', 204
 
 
-@app.route('/user-photo-upload')
+@app.route('/user-photo-upload', methods=['GET', 'POST'])
 def user_photo_upload():
-    return render_template('user_photo_upload.html')
+    err = None
+    username = session.get('username', '')
+    if request.method == 'POST':
+        if request.form.get("submit") == 'Submit':
+            # No checks for file type/extension yet...
+            # TODO: add file extension check
+            f = request.files.get('file')
+            file_name = f.filename
+            with open(file_name, 'rb') as fp:
+                img = fp.read()
+            content_type = f.content_type
+            read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img, content_type)
+        else:
+            read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
+
+    images = read_query(True, "SELECT * FROM images WHERE username = ?", username)
+    return render_template('user_photo_upload.html', err=err, images=images)
 
 
 @app.route('/cart', methods=['GET', 'POST'])
@@ -181,12 +197,14 @@ def logout():
 def contact():
     return render_template('contact.html')
 
+
 def init_database():
     read_query(True,
                "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, title TEXT NOT NULL, price REAL NOT NULL, link TEXT NOT NULL, img TXT NOT NULL);")
     read_query(True,
                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
+    read_query(True, "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, img BLOB NOT NULL, type TEXT NOT NULL);")
     # Treat an empty username as a guest
     read_query(True, "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');")
 
