@@ -135,10 +135,11 @@ def user_photo_upload():
                 with open(file_name, 'rb') as fp:
                     img = base64.b64encode(fp.read())
 
-                # img += "=" * ((4 - len(img) % 4) % 4)
                 content_type = f.content_type
+                flash("Image successfully uploaded.")
                 read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img, content_type)
         else:
+            flash("Image successfully deleted.")
             read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
 
     images = read_query(True, "SELECT * FROM images WHERE username = ?", username)
