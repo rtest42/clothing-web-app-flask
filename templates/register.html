@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 {% block main %}
+    {% if err %}
+        <p style="color:red;">{{ err }}</p>
+    {% endif %}
     <form action="/register" method="post">
         <input id="username" name="username" placeholder="Username" type="text">
         <input id="password" name="password" placeholder="Password" type="password">
         <button type="submit">Register</button>
     </form>
-    {% if err_register %}
-        <p class="err">Error registering user.</p>
-    {% endif %}
 {% endblock %}
