@@ -1,7 +1,7 @@
 function addToCart(item) {
-    alert("Successfully added to cart.");
+    alert("Adding to cart...");
 }
 
 function removeFromCart() {
-    alert("Successfully removed from cart.");
+    alert("Removing from cart...");
 }

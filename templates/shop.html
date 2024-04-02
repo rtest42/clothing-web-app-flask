@@ -14,12 +14,23 @@
         <input type="submit" name="submit" value="Submit">
     </form>
     {% if results %}
-        {% for result in results %}
-            <p>{{ result["title"] }} - {{ result["price"] }} - {{ result["link"] }}</p>
-            <img src="{{ result['thumbnail'] }}">
-            <form action="/add-to-cart" method="post">
-                <button type="submit" name="submit" value="{{ result }}" onclick="addToCart()">Add</button>
-            </form>
-        {% endfor %}
+        <div class="border">
+            {% for result in results %}
+            <div class="thumbnail">
+                <a href="{{ result['link'] }}" target="_blank">
+                    <img src="{{ result['thumbnail'] }}"/>
+                </a>
+            </div>
+            <div class="info">
+                <p>{{ result['title'] }}</p>
+                <p>Rating: {{ result['rating'] or 'N/A' }} / Reviews: {{ results['reviews'] or 'N/A' }}</p>
+                <p>Price: {{ result['price'] }}</p>
+                <form action="/add-to-cart" method="post">
+                    <button type="submit" name="submit" value="{{ result }}" onclick="addToCart()">Add</button>
+                </form>
+            </div>
+            <div class="break"></div>
+            {% endfor %}
+        </div>
     {% endif %}
 {% endblock %}

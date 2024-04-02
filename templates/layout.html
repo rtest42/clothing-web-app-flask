@@ -18,7 +18,7 @@
         <a href="/shop">Shop</a>
         <a href="/cart">Cart</a>
         <a href="/contact">Contact</a>
-        {% if session['user'] %}
+        {% if session['username'] %}
             <a href="/logout">Logout</a>
             <a href="/user-photo-upload">Photos</a>
         {% else %}
@@ -26,10 +26,10 @@
             <a href="/register">Register</a>
         {% endif %}
         <!--Main body Section-->
-        {% if session['user'] %}
-            <p>Logged in as {{ session['user'][1] }}</p>
+        {% if session['username'] %}
+            <p>Hello, {{ session['username'] }}</p>
         {% else %}
-            <p>You're a guest!</p>
+            <p>Not logged in</p>
         {% endif %}
     </nav>
     {% block main %}

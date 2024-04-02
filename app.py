@@ -7,6 +7,8 @@ import ast
 from dotenv import load_dotenv
 
 app = Flask(__name__)
+# USD filter
+app.jinja_env.filters["usd"] = lambda value: f"${value:,.2f}"
 # Auto-reload templates
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Use filesystem instead of cookies
@@ -101,9 +103,10 @@ def add_to_cart():
     title = result['title']
     price = result['extracted_price']
     link = result['link']
+    img = result['thumbnail']
     username = session.get('username', '')
-    read_query(True, "INSERT INTO cart (username, title, price, link) VALUES (?, ?, ?, ?)", username, title, price,
-               link)
+    read_query(True, "INSERT INTO cart (username, title, price, link, img) VALUES (?, ?, ?, ?, ?)", username, title, price,
+               link, img)
     # Return nothing new
     return '', 204
 
@@ -178,10 +181,9 @@ def logout():
 def contact():
     return render_template('contact.html')
 
-
 def init_database():
     read_query(True,
-               "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, title TEXT, price REAL, link TEXT);")
+               "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, title TEXT NOT NULL, price REAL NOT NULL, link TEXT NOT NULL, img TXT NOT NULL);")
     read_query(True,
                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
