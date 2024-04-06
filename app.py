@@ -123,10 +123,39 @@ def add_to_cart():
 def user_photo_upload():
     err = None
     username = session.get('username', '')
+    details = read_query(False, "SELECT height, weight, circumference FROM details WHERE username = ?", username)
     if request.method == 'POST':
-        if not request.files.get('file'):
+        if request.form.get("submit") == 'update':
+            inches = request.form.get("height_inch")
+            feet = request.form.get("height_foot")
+            if not inches and not feet:
+                inches = details[0] % 12
+                feet = details[0] // 12
+            elif inches and not feet:
+                inches = int(inches)
+                feet = 0
+            elif feet and not inches:
+                feet = int(feet)
+                inches = 0
+            else:
+                inches = int(inches)
+                feet = int(feet)
+            height = (12 * feet) + inches
+            weight = request.form.get("weight")
+            if not weight:
+                weight = details[1]
+            else:
+                weight = int(weight)
+            circumference = request.form.get("circumference")
+            if not circumference:
+                circumference = details[2]
+            else:
+                circumference = int(circumference)
+            flash("Information successfully updated.")
+            read_query(True, "UPDATE details SET height = ?, weight = ?, circumference = ? WHERE username = ?", height, weight, circumference, username)
+        elif not request.files.get('file'):
             err = "No file selected"
-        elif request.form.get("submit") == 'Submit':
+        elif request.form.get("submit") == 'submit':
             f = request.files.get('file')
             file_name = f.filename
             if not os.path.isfile(file_name):
@@ -143,7 +172,8 @@ def user_photo_upload():
             read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
 
     images = read_query(True, "SELECT * FROM images WHERE username = ?", username)
-    return render_template('user_photo_upload.html', err=err, images=images)
+    details = read_query(False, "SELECT height, weight, circumference FROM details WHERE username = ?", username)
+    return render_template('user_photo_upload.html', err=err, images=images, details=details)
 
 
 @app.route('/cart', methods=['GET', 'POST'])
@@ -187,6 +217,11 @@ def register():
         else:
             read_query(True, "INSERT INTO users (username, password) VALUES (?, ?);", request.form.get("username"),
                        request.form.get("password"))
+            # Default values are the average American man
+            default_height = 69
+            default_weight = 200
+            default_circumference = 40
+            read_query(True, "INSERT INTO details (username, height, weight, circumference) VALUES (?, ?, ?, ?);", request.form.get("username"), default_height, default_weight, default_circumference)
 
             flash("You have successfully registered for an account.")
             return redirect('/')
@@ -208,11 +243,13 @@ def contact():
 
 def init_database():
     read_query(True,
-               "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, title TEXT NOT NULL, price REAL NOT NULL, link TEXT NOT NULL, img TXT NOT NULL);")
+               "CREATE TABLE IF NOT EXISTS cart (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, title TEXT NOT NULL, price DECIMAL NOT NULL, link TEXT NOT NULL, img TXT NOT NULL);")
     read_query(True,
                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
     read_query(True, "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, img BLOB NOT NULL, type TEXT NOT NULL);")
+    # Imperial units
+    read_query(True, "CREATE TABLE IF NOT EXISTS details (username TEXT NOT NULL, height INTEGER NOT NULL, weight INTEGER NOT NULL, circumference INTEGER NOT NULL);")
     # Treat an empty username as a guest
     read_query(True, "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');")
 

@@ -1,13 +1,23 @@
 <!-- Users upload their clothing here -->
 {% extends "layout.html" %}
 {% block main %}
+    <form action="/user-photo-upload" method="post">
+        <label for="height_foot">Height: {{ details[0] // 12 }} ft {{ details[0] % 12 }} in</label>
+        <input id="height_foot" name="height_foot" type="number" min="0">
+        <input id="height_inch" name="height_inch" type="number" min="0">
+        <label for="weight">Weight: {{ details[1] }} lbs</label>
+        <input id="weight" name="weight" type="number" min="0">
+        <label for="circumference">Circumference: {{ details[2] }} in</label>
+        <input id="circumference" name="circumference" type="number" min="0">
+        <input type="submit" name="submit" value="update">
+    </form>
     <p>Upload your photos here.</p>
     {% if err %}
         <p style="color:red;">{{ err }}</p>
     {% endif %}
     <form action="/user-photo-upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept="image/*">
-        <input type="submit" name="submit" value="Submit">
+        <input type="submit" name="submit" value="submit">
     </form>
     {% for image in images %}
         <div class="thumbnail">
