@@ -131,26 +131,17 @@ def user_photo_upload():
             if not inches and not feet:
                 inches = details[0] % 12
                 feet = details[0] // 12
-            elif inches and not feet:
-                inches = int(inches)
-                feet = 0
-            elif feet and not inches:
-                feet = int(feet)
-                inches = 0
-            else:
-                inches = int(inches)
-                feet = int(feet)
+
+            inches = 0 if not inches else int(inches)
+            feet = 0 if not feet else int(feet)
             height = (12 * feet) + inches
+
             weight = request.form.get("weight")
-            if not weight:
-                weight = details[1]
-            else:
-                weight = int(weight)
+            weight = details[1] if not weight else int(weight)
+
             circumference = request.form.get("circumference")
-            if not circumference:
-                circumference = details[2]
-            else:
-                circumference = int(circumference)
+            circumference = details[2] if not circumference else int(circumference)
+
             flash("Information successfully updated.")
             read_query(True, "UPDATE details SET height = ?, weight = ?, circumference = ? WHERE username = ?", height, weight, circumference, username)
         elif not request.files.get('file'):
