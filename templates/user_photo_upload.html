@@ -7,11 +7,11 @@
         <input id="height_inch" name="height_inch" type="number" min="0">
         <label for="weight">Weight: {{ details[1] }} lbs</label>
         <input id="weight" name="weight" type="number" min="0">
-        <label for="circumference">Circumference: {{ details[2] }} in</label>
+        <label for="circumference">Waist Circumference: {{ details[2] }} in</label>
         <input id="circumference" name="circumference" type="number" min="0">
         <input type="submit" name="submit" value="update">
     </form>
-    <p>Upload your photos here.</p>
+    <p>Upload your full body photos here. Uploaded: {{ details[4] }}/{{ details[3] }}</p>
     {% if err %}
         <p style="color:red;">{{ err }}</p>
     {% endif %}

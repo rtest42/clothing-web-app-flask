@@ -5,17 +5,25 @@ import requests
 import os
 import ast
 import base64
+import random
+from datetime import datetime
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 # Filters
 app.jinja_env.filters["usd"] = lambda value: f"${value:,.2f}"
 app.jinja_env.filters["decode"] = lambda value: value.decode('utf-8')
+app.jinja_env.filters["timestamp"] = lambda timestamp: datetime.fromtimestamp(int(timestamp))
 # Auto-reload templates
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Use filesystem instead of cookies
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+# Upload files config
+UPLOAD_FOLDER = './static/images'
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 Session(app)
 
 database = "armoire.db"
@@ -47,10 +55,54 @@ def read_query(get_all, sql_cmd, *args):
         db.commit()
         return query
 
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    place = 'San Jose'
+    if request.method == 'POST':
+        place = request.form.get('place')
+
+    openweather_key = os.getenv('openweather_key')
+    # Convert city to lat/lon
+    url = "https://api.openweathermap.org/geo/1.0/direct"
+    params = {
+        'q': place,
+        'appid': openweather_key
+    }
+
+    response = requests.get(url, params=params)
+    response = response.json()
+    lat = response[0]['lat']
+    lon = response[0]['lon']
+
+    # Get hourly forecast
+    url = "https://api.openweathermap.org/data/2.5/forecast"
+    params = {
+        'lat': lat,
+        'lon': lon,
+        'appid': openweather_key,
+        'units': 'imperial'
+    }
+
+    response = requests.get(url, params=params)
+    weather_forecast = response.json()['list']
+    forecast = weather_forecast
+
+    # Search fit of the day
+    # HEAD
+    serpapi_key = os.getenv('serpapi_key')
+
+    search_query = 'hat for cloudy weather'
+    url = 'https://serpapi.com/search'
+    params = {
+        'q': search_query,
+        'api_key': serpapi_key,
+        'engine': 'google_shopping'
+    }
+
+    response = requests.get(url, params=params)
+    clothing_head_results = response.json()['shopping_results'][random.randint(0, 20)]
+
+    return render_template('index.html', forecast=forecast, head=clothing_head_results)
 
 
 @app.route('/shop', methods=['GET', 'POST'])
@@ -123,7 +175,7 @@ def add_to_cart():
 def user_photo_upload():
     err = None
     username = session.get('username', '')
-    details = read_query(False, "SELECT height, weight, circumference FROM details WHERE username = ?", username)
+    details = read_query(False, "SELECT height, weight, circumference, max_uploads, uploads FROM details WHERE username = ?", username)
     if request.method == 'POST':
         if request.form.get("submit") == 'update':
             inches = request.form.get("height_inch")
@@ -144,26 +196,31 @@ def user_photo_upload():
 
             flash("Information successfully updated.")
             read_query(True, "UPDATE details SET height = ?, weight = ?, circumference = ? WHERE username = ?", height, weight, circumference, username)
-        elif not request.files.get('file'):
-            err = "No file selected"
         elif request.form.get("submit") == 'submit':
-            f = request.files.get('file')
-            file_name = f.filename
-            if not os.path.isfile(file_name):
-                err = "File not in directory"
-            else:
-                with open(file_name, 'rb') as fp:
+            upload_file = request.files.get('file')
+            if upload_file.filename == '':
+                err = "No image selected"
+            elif upload_file and details[4] < details[3]:
+                filename = secure_filename(upload_file.filename)
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                upload_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'rb') as fp:
                     img = base64.b64encode(fp.read())
 
-                content_type = f.content_type
+                content_type = upload_file.content_type
                 flash("Image successfully uploaded.")
+                read_query(True, "UPDATE details SET uploads = ? WHERE username = ?", details[4] + 1, username)
                 read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img, content_type)
+            else:
+                err = "Maximum files uploaded already."
         else:
             flash("Image successfully deleted.")
+            read_query(True, "UPDATE details SET uploads = ? WHERE username = ?", details[4] - 1, username)
             read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
 
     images = read_query(True, "SELECT * FROM images WHERE username = ?", username)
-    details = read_query(False, "SELECT height, weight, circumference FROM details WHERE username = ?", username)
+    details = read_query(False, "SELECT height, weight, circumference, max_uploads, uploads FROM details WHERE username = ?", username)
     return render_template('user_photo_upload.html', err=err, images=images, details=details)
 
 
@@ -212,7 +269,9 @@ def register():
             default_height = 69
             default_weight = 200
             default_circumference = 40
-            read_query(True, "INSERT INTO details (username, height, weight, circumference) VALUES (?, ?, ?, ?);", request.form.get("username"), default_height, default_weight, default_circumference)
+            # Maximum uploads
+            default_max_uploads = 12
+            read_query(True, "INSERT INTO details (username, height, weight, circumference, max_uploads) VALUES (?, ?, ?, ?, ?);", request.form.get("username"), default_height, default_weight, default_circumference, default_max_uploads)
 
             flash("You have successfully registered for an account.")
             return redirect('/')
@@ -240,7 +299,7 @@ def init_database():
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
     read_query(True, "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, img BLOB NOT NULL, type TEXT NOT NULL);")
     # Imperial units
-    read_query(True, "CREATE TABLE IF NOT EXISTS details (username TEXT NOT NULL, height INTEGER NOT NULL, weight INTEGER NOT NULL, circumference INTEGER NOT NULL);")
+    read_query(True, "CREATE TABLE IF NOT EXISTS details (username TEXT NOT NULL, height INTEGER NOT NULL, weight INTEGER NOT NULL, circumference INTEGER NOT NULL, max_uploads INTEGER NOT NULL, uploads INTEGER NOT NULL DEFAULT 0);")
     # Treat an empty username as a guest
     read_query(True, "INSERT OR IGNORE INTO users (username, password) VALUES ('', '');")
 
@@ -249,9 +308,11 @@ def init_database():
 def main():
     # Load environment variables
     load_dotenv()
-    # Make sure SerpAPI key is set
+    # Make sure API keys are set
     if not os.environ.get("serpapi_key"):
         raise RuntimeError("serpapi_key not set")
+    if not os.environ.get("openweather_key"):
+        raise RuntimeError("openweather_key not set")
     # Initialize armoire.db if not already
     if not os.path.isfile(database):
         open(database, 'x').close()

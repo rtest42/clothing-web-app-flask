@@ -1,5 +1,76 @@
 <!--Extension of layout page containing main Body-->
 {% extends "layout.html" %}
 {% block main %}
-    <p>Click on the links to explore around.</p>
+    <h1>Homepage</h1>
+    <div class="split left border">
+        <table>
+            <tr>
+                <th>Part</th>
+                <th>Image</th>
+                <th>Buttons</th>
+            </tr>
+            <tr>
+                <td>Head</td>
+                <td>
+                    <div class="thumbnail">
+                        <img src="{{ head['thumbnail'] }}" />
+                    </div>
+                </td>
+                <td>
+                    <form action="/" method="post">
+                        <button type="submit" name="submit" value="reshuffle_head">Reshuffle</button>
+                    </form>
+                    <form action="/add-to-cart" method="post">
+                        <button type="submit" name="submit" value="{{ head }}" onclick="addToCart()">Add</button>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td>Body</td>
+                <td>
+                    <p>PLACEHOLDER</p>
+                </td>
+                <td>
+                    <form action="/" method="post">
+                        <button type="submit" name="submit" value="reshuffle_body">Reshuffle</button>
+                        <button type="submit" name="submit" value="add_body">Add</button>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td>Legs</td>
+                <td>
+                    <p>PLACEHOLDER</p>
+                </td>
+                <td>
+                    <form action="/" method="post">
+                        <button type="submit" name="submit" value="reshuffle_legs">Reshuffle</button>
+                        <button type="submit" name="submit" value="add_legs">Add</button>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td>Foot</td>
+                <td>
+                    <p>PLACEHOLDER</p>
+                </td>
+                <td>
+                    <form action="/" method="post">
+                        <button type="submit" name="submit" value="reshuffle_feet">Reshuffle</button>
+                        <button type="submit" name="submit" value="add_feet">Add</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="split right border">
+        <h5>Weather Forecast</h5>
+        <form action="/" method="post">
+            <input id="place" name="place" placeholder="San Jose" type="text">
+            <button type="submit" name="submit" value="submit">Submit</button>
+        </form>
+        {% for day in forecast %}
+            <p>{{ day['dt']|timestamp }}: {{ day['main']['temp'] }} F, weather: {{ day['weather'][0]['main'] }}</p>
+        {% endfor %}
+    </div>
 {% endblock %}
