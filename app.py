@@ -8,6 +8,7 @@ import base64
 import random
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -284,7 +285,7 @@ def login():
         user = read_query(False, "SELECT * FROM users WHERE username = ?", request.form.get("username"))
         if request.form.get("username") == '' or user is None:
             err = "Invalid username"
-        elif user[2] != request.form.get("password"):
+        elif not check_password_hash(user[2], request.form.get("password")):
             err = "Invalid password"
         else:
             # Stores session
@@ -310,7 +311,7 @@ def register():
             err = "Username already exists"
         else:
             read_query(True, "INSERT INTO users (username, password) VALUES (?, ?);", request.form.get("username"),
-                       request.form.get("password"))
+                       generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8))
             # Default values are the average American man
             default_height = 69
             default_weight = 200
