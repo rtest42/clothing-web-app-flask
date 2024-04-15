@@ -55,8 +55,14 @@ def read_query(get_all, sql_cmd, *args):
         db.commit()
         return query
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
 def index():
+    return render_template("index.html")
+
+
+@app.route('/customization', methods=['GET', 'POST'])
+def customization():
     place = 'San Jose'
     if request.method == 'POST':
         place = request.form.get('place')
@@ -102,7 +108,7 @@ def index():
     response = requests.get(url, params=params)
     clothing_head_results = response.json()['shopping_results'][random.randint(0, 20)]
 
-    return render_template('index.html', forecast=forecast, head=clothing_head_results)
+    return render_template('customization.html', forecast=forecast, head=clothing_head_results)
 
 
 @app.route('/shop', methods=['GET', 'POST'])
