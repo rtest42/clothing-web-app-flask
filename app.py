@@ -3,10 +3,9 @@ from flask_session import Session
 import sqlite3
 import requests
 import os
-import ast
+from ast import literal_eval
 import base64
-import random
-from datetime import datetime
+from datetime import date, datetime
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
@@ -70,28 +69,41 @@ def index():
 # Page shows Fit of the Day and a weather forecast. Must be logged in.
 @app.route('/customization', methods=['GET', 'POST'])
 def customization():
-    place = 'San Jose'
-    if request.method == 'POST':
-        place = request.form.get('place')
+    username = session.get('username', '')
+    if not session.get('place_{}'.format(username)):
+        session['place_{}'.format(username)] = 'San Jose'
 
+    if request.method == 'POST':
+        if request.form.get('submit') == 'reshuffle_head' and session['head_counter_{}'.format(username)] < len(session['head_result_{}'.format(username)]):
+            session['head_counter_{}'.format(username)] += 1
+        elif request.form.get('submit') == 'reshuffle_chest' and session['chest_counter_{}'.format(username)] < len(session['chest_result_{}'.format(username)]):
+            session['chest_counter_{}'.format(username)] += 1
+        elif request.form.get('submit') == 'reshuffle_leg' and session['leg_counter_{}'.format(username)] < len(session['leg_result_{}'.format(username)]):
+            session['leg_counter_{}'.format(username)] += 1
+        elif request.form.get('submit') == 'reshuffle_foot' and session['foot_counter_{}'.format(username)] < len(session['foot_result_{}'.format(username)]):
+            session['foot_counter_{}'.format(username)] += 1
+        elif request.form.get('submit') == 'submit' and request.form.get('place') != '':
+            session['place_{}'.format(username)] = request.form.get('place')
+
+    place = session['place_{}'.format(username)]
     openweather_key = os.getenv('openweather_key')
     # Convert city to lat/lon
     url = "https://api.openweathermap.org/geo/1.0/direct"
     params = {
         'q': place,
-        'appid': openweather_key
+        'appid': openweather_key,
+        'limit': 1
     }
 
     response = requests.get(url, params=params)
     response = response.json()
-    lat = response[0]['lat']
-    lon = response[0]['lon']
+    coordinates = response[0]
 
     # Get hourly forecast
     url = "https://api.openweathermap.org/data/2.5/forecast"
     params = {
-        'lat': lat,
-        'lon': lon,
+        'lat': coordinates['lat'],
+        'lon': coordinates['lon'],
         'appid': openweather_key,
         'units': 'imperial'
     }
@@ -100,22 +112,66 @@ def customization():
     weather_forecast = response.json()['list']
     forecast = weather_forecast
 
+    # Refresh results once per day
     # Search fit of the day
-    # HEAD
-    serpapi_key = os.getenv('serpapi_key')
+    if not session.get('date') or session['date'] != date.today():
+        session['date'] = date.today()
+        serpapi_key = os.getenv('serpapi_key')
 
-    search_query = 'hat for cloudy weather'
-    url = 'https://serpapi.com/search'
-    params = {
-        'q': search_query,
-        'api_key': serpapi_key,
-        'engine': 'google_shopping'
-    }
+        # HEAD (hat)
+        # TODO: improve and customize the search query.
+        search_query = 'hat for {} weather'.format(forecast[0]['weather'][0]['main'])
+        url = 'https://serpapi.com/search'
+        params = {
+            'q': search_query,
+            'api_key': serpapi_key,
+            'engine': 'google_shopping'
+        }
 
-    response = requests.get(url, params=params)
-    clothing_head_results = response.json()['shopping_results'][random.randint(0, 20)]
+        response = requests.get(url, params=params)
+        session['head_result_{}'.format(username)] = response.json()['shopping_results']
+        session['head_counter_{}'.format(username)] = 0
 
-    return render_template('customization.html', forecast=forecast, head=clothing_head_results)
+        # CHEST (shirt)
+        search_query = 'shirt for {} weather'.format(forecast[0]['weather'][0]['main'])
+        url = 'https://serpapi.com/search'
+        params = {
+            'q': search_query,
+            'api_key': serpapi_key,
+            'engine': 'google_shopping'
+        }
+
+        response = requests.get(url, params=params)
+        session['chest_result_{}'.format(username)] = response.json()['shopping_results']
+        session['chest_counter_{}'.format(username)] = 0
+
+        # LEG (pants)
+        search_query = 'pants for {} weather'.format(forecast[0]['weather'][0]['main'])
+        url = 'https://serpapi.com/search'
+        params = {
+            'q': search_query,
+            'api_key': serpapi_key,
+            'engine': 'google_shopping'
+        }
+
+        response = requests.get(url, params=params)
+        session['leg_result_{}'.format(username)] = response.json()['shopping_results']
+        session['leg_counter_{}'.format(username)] = 0
+
+        # FOOT (shoes)
+        search_query = 'shoes for {} weather'.format(forecast[0]['weather'][0]['main'])
+        url = 'https://serpapi.com/search'
+        params = {
+            'q': search_query,
+            'api_key': serpapi_key,
+            'engine': 'google_shopping'
+        }
+
+        response = requests.get(url, params=params)
+        session['foot_result_{}'.format(username)] = response.json()['shopping_results']
+        session['foot_counter_{}'.format(username)] = 0
+
+    return render_template('customization.html', place=place, forecast=forecast, head=session['head_result_{}'.format(username)][session['head_counter_{}'.format(username)]], chest=session['chest_result_{}'.format(username)][session['chest_counter_{}'.format(username)]], leg=session['leg_result_{}'.format(username)][session['leg_counter_{}'.format(username)]], foot=session['foot_result_{}'.format(username)][session['foot_counter_{}'.format(username)]])
 
 
 #
@@ -168,8 +224,7 @@ def shop():
 # Adds selected item to shopping cart. Does not require login.
 @app.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
-    result = request.form.get('submit')
-    result = ast.literal_eval(result)
+    result = literal_eval(request.form.get('submit'))
     # Get information about selected item
     title = result['title']
     price = result['extracted_price']
@@ -281,7 +336,9 @@ def cart():
 # Logs in the user. Only appears when not logged in.
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    session.clear()
+    # session.clear()
+    session['user_id'] = None
+    session['username'] = None
     err = None
     if request.method == 'POST':
         # Looks up username and password
@@ -337,7 +394,9 @@ def register():
 @app.route('/logout')
 def logout():
     # Logs out user
-    session.clear()
+    # session.clear()
+    session['user_id'] = None
+    session['username'] = None
 
     flash("You have successfully logged out.")
     return redirect('/')

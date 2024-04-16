@@ -2,75 +2,97 @@
 {% extends "layout.html" %}
 {% block main %}
     <h1>Customization</h1>
-    <div class="split left border">
-        <table>
-            <tr>
-                <th>Part</th>
-                <th>Image</th>
-                <th>Buttons</th>
-            </tr>
-            <tr>
-                <td>Head</td>
-                <td>
-                    <div class="thumbnail">
-                        <img src="{{ head['thumbnail'] }}" />
-                    </div>
-                </td>
-                <td>
-                    <form action="/customization" method="post">
-                        <button type="submit" name="submit" value="reshuffle_head">Reshuffle</button>
-                    </form>
-                    <form action="/add-to-cart" method="post">
-                        <button type="submit" name="submit" value="{{ head }}" onclick="addToCart()">Add</button>
-                    </form>
-                </td>
-            </tr>
-            <tr>
-                <td>Body</td>
-                <td>
-                    <p>PLACEHOLDER</p>
-                </td>
-                <td>
-                    <form action="/" method="post">
-                        <button type="submit" name="submit" value="reshuffle_body">Reshuffle</button>
-                        <button type="submit" name="submit" value="add_body">Add</button>
-                    </form>
-                </td>
-            </tr>
-            <tr>
-                <td>Legs</td>
-                <td>
-                    <p>PLACEHOLDER</p>
-                </td>
-                <td>
-                    <form action="/" method="post">
-                        <button type="submit" name="submit" value="reshuffle_legs">Reshuffle</button>
-                        <button type="submit" name="submit" value="add_legs">Add</button>
-                    </form>
-                </td>
-            </tr>
-            <tr>
-                <td>Foot</td>
-                <td>
-                    <p>PLACEHOLDER</p>
-                </td>
-                <td>
-                    <form action="/" method="post">
-                        <button type="submit" name="submit" value="reshuffle_feet">Reshuffle</button>
-                        <button type="submit" name="submit" value="add_feet">Add</button>
-                    </form>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div class="split right border">
-        <h5>Weather Forecast</h5>
-        <form action="/" method="post">
-            <input id="place" name="place" placeholder="San Jose" type="text">
-            <button type="submit" name="submit" value="submit">Submit</button>
-        </form>
-        {% for day in forecast %}
-            <p>{{ day['dt']|timestamp }}: {{ day['main']['temp'] }} F, weather: {{ day['weather'][0]['main'] }}</p>
-        {% endfor %}
-    </div>
+    <section class="split">
+        <div class="left border">
+            <table>
+                <tr>
+                    <th>Part</th>
+                    <th>Image</th>
+                    <th>Buttons</th>
+                </tr>
+                <tr>
+                    <td>Head</td>
+                    <td>
+                        <div class="thumbnail">
+                            <a href="{{ head['link'] }}" target="_blank" title="{{ head['price'] }}">
+                                <img src="{{ head['thumbnail'] }}" />
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <form action="/customization" method="post">
+                            <button type="submit" name="submit" value="reshuffle_head">Reshuffle</button>
+                        </form>
+                        <form action="/add-to-cart" method="post">
+                            <button type="submit" name="submit" value="{{ head }}" onclick="addToCart()">Add</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Body</td>
+                    <td>
+                        <div class="thumbnail">
+                            <a href="{{ chest['link'] }}" target="_blank" title="{{ chest['price'] }}">
+                                <img src="{{ chest['thumbnail'] }}" />
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <form action="/customization" method="post">
+                            <button type="submit" name="submit" value="reshuffle_chest">Reshuffle</button>
+                        </form>
+                        <form action="/add-to-cart" method="post">
+                            <button type="submit" name="submit" value="{{ chest }}">Add</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Legs</td>
+                    <td>
+                        <div class="thumbnail">
+                            <a href="{{ leg['link'] }}" target="_blank" title="{{ leg['price'] }}">
+                                <img src="{{ leg['thumbnail'] }}" />
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <form action="/customization" method="post">
+                            <button type="submit" name="submit" value="reshuffle_leg">Reshuffle</button>
+                        </form>
+                        <form action="/add-to-cart" method="post">
+                            <button type="submit" name="submit" value="{{ leg }}">Add</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Foot</td>
+                    <td>
+                        <div class="thumbnail">
+                            <a href="{{ foot['link'] }}" target="_blank" title="{{ foot['price'] }}">
+                                <img src="{{ foot['thumbnail'] }}" />
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <form action="/customization" method="post">
+                            <button type="submit" name="submit" value="reshuffle_foot">Reshuffle</button>
+                        </form>
+                        <form action="/add-to-cart" method="post">
+                            <button type="submit" name="submit" value="{{ foot }}">Add</button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="right border">
+            <h5>Weather Forecast for {{ place }}</h5>
+            <form action="/customization" method="post">
+                <input id="place" name="place" placeholder="San Jose" type="text">
+                <button type="submit" name="submit" value="submit">Submit</button>
+            </form>
+            {% for day in forecast %}
+                <p>{{ day['dt']|timestamp }}: {{ day['main']['temp'] }} F, weather: {{ day['weather'][0]['main'] }}</p>
+            {% endfor %}
+        </div>
+    </section>
 {% endblock %}
