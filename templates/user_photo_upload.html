@@ -11,23 +11,31 @@
         <input id="circumference" name="circumference" type="number" min="0">
         <input type="submit" name="submit" value="update">
     </form>
-    <p>Upload your full body photos here. Uploaded: {{ details[4] }}/{{ details[3] }}</p>
+    <p>Upload your full body photos here. Uploaded: {{ details[4] }} / {{ details[3] }} (max {{ details[3] // 4 }} per body part)</p>
     {% if err %}
         <p style="color:red;">{{ err }}</p>
     {% endif %}
     <form action="/user-photo-upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept="image/*">
+        <select name="part" id="part">
+            <option value="head">Head</option>
+            <option value="chest">Chest</option>
+            <option value="leg">Leg</option>
+            <option value="foot">Foot</option>
+	    </select>
         <input type="submit" name="submit" value="submit">
     </form>
     {% for image in images %}
-        <div class="thumbnail">
-            <img src="data:{{ image[3] }};base64,{{ image[2]|decode }}">
+        <div class="user-img">
+            <figure>
+                <img src="data:{{ image[3] }};base64,{{ image[2]|decode }}">
+                <figcaption>Part: {{ image[4] }}
+                    <form action="/user-photo-upload" method="post">
+                        <button type="submit" name="submit" value="{{ image[0] }}" onclick="removeFile()">Remove</button>
+                    </form>
+                </figcaption>
+            </figure>
         </div>
-        <div class="info">
-            <form action="/user-photo-upload" method="post">
-                <button type="submit" name="submit" value="{{ image[0] }}" onclick="removeFile()">Remove</button>
-            </form>
-        </div>
-        <div class="break"></div>
+
     {% endfor %}
 {% endblock %}

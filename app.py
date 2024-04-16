@@ -224,10 +224,12 @@ def user_photo_upload():
             read_query(True, "UPDATE details SET height = ?, weight = ?, circumference = ? WHERE username = ?", height,
                        weight, circumference, username)
         elif request.form.get("submit") == 'submit':
+            parts = read_query(False, "SELECT COUNT(*) FROM images WHERE username = ? AND part = ?",
+                               username, request.form.get('part'))[0]
             upload_file = request.files.get('file')
             if upload_file.filename == '':
                 err = "No image selected"
-            elif upload_file and details[4] < details[3]:
+            elif upload_file and parts < details[3] / 4:
                 # Save uploaded file to static directory
                 filename = secure_filename(upload_file.filename)
                 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -243,10 +245,10 @@ def user_photo_upload():
                 # Increment upload counter
                 read_query(True, "UPDATE details SET uploads = ? WHERE username = ?", details[4] + 1, username)
                 # Insert image
-                read_query(True, "INSERT INTO images (username, img, type) values (?, ?, ?)", username, img,
-                           content_type)
+                read_query(True, "INSERT INTO images (username, img, type, part) values (?, ?, ?, ?)", username, img,
+                           content_type, request.form.get('part'))
             else:
-                err = "Maximum files uploaded already."
+                err = "Maximum number of files uploaded already for the {}.".format(request.form.get('part'))
         else:
             flash("Image successfully deleted.")
             # Decrement upload counter
@@ -255,7 +257,8 @@ def user_photo_upload():
             read_query(True, "DELETE FROM images WHERE id = ?", request.form.get('submit'))
 
     # Select all images from user
-    images = read_query(True, "SELECT * FROM images WHERE username = ?", username)
+    part_list = ['head', 'chest', 'leg', 'foot']
+    images = sorted(read_query(True, "SELECT * FROM images WHERE username = ?", username), key=lambda part: part_list.index(part[4]))
     # Get other details from user
     details = read_query(False,
                          "SELECT height, weight, circumference, max_uploads, uploads FROM details WHERE username = ?",
@@ -354,7 +357,7 @@ def init_database():
                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);")
     read_query(True, "CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);")
     read_query(True,
-               "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, img BLOB NOT NULL, type TEXT NOT NULL);")
+               "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, img BLOB NOT NULL, type TEXT NOT NULL, part TEXT);")
     # Store user information with imperial units
     read_query(True,
                "CREATE TABLE IF NOT EXISTS details (username TEXT NOT NULL, height INTEGER NOT NULL, weight INTEGER NOT NULL, circumference INTEGER NOT NULL, max_uploads INTEGER NOT NULL, uploads INTEGER NOT NULL DEFAULT 0);")
