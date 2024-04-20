@@ -20,17 +20,28 @@
         <a href="/contact">Contact</a>
         {% if session['username'] %}
             <a href="/customization">Customization</a>
-            <a href="/logout">Logout</a>
             <a href="/user-photo-upload">Photos</a>
         {% else %}
-            <a href="/login">Login</a>
             <a href="/register">Register</a>
         {% endif %}
         <!--Main body Section-->
         {% if session['username'] %}
-            <p>Hello, {{ session['username'] }}</p>
+            <div class="topright">
+                <div class="dropdown">
+                    <button class="dropbtn">{{ session['username'] }}
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/logout">Logout</a>
+                    </div>
+                </div>
+            </div>
         {% else %}
-            <p>Not logged in</p>
+            <div class="topright">
+                <head>
+                    <a href="/login">Login</a>
+                </head>
+            </div>
         {% endif %}
     </nav>
     {% with messages = get_flashed_messages() %}
