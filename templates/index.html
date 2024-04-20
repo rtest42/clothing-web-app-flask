@@ -2,7 +2,16 @@
 {% extends "layout.html" %}
 {% block main %}
     <h1>Homepage</h1>
-    <body>
-
-    </body>
+    <div class="container">
+         <img src="https://images.pexels.com/photos/5490979/pexels-photo-5490979.jpeg" style="width:100%;">
+         <div class="center">
+             <h1>Try on clothes at home with a virtual fitting room</h1>
+         </div>
+         <div class="bottom">
+             <form action="/shop" method="post">
+                 <input type="text" id="shop" name="shop" placeholder="Search...">
+                 <input type="submit" name="submit" value="Submit">
+             </form>
+         </div>
+     </div>
 {% endblock %}
