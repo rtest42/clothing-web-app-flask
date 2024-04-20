@@ -1,49 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
     <!--<link href="../static/favicon.ico" rel="icon">-->
-    <link href="../static/styles.css" rel="stylesheet">
+    <link href="../static/styles.css" rel="stylesheet" />
     <script src="../static/app.js" type="text/javascript"></script>
     <title>The Armoire</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <!--Nav Bar Section-->
     <nav id="top-nav">
-        <!--Brand name hyperlink to home page with black color-->
-        <h1 id="title"><a href="/" style="text-decoration:none"><span style="color: black">The Armoire</span></a></h1>
-        <a href="/shop">Shop</a>
-        <a href="/cart">Cart</a>
-        <a href="/contact">Contact</a>
-        {% if session['username'] %}
-            <a href="/customization">Customization</a>
+      <!--Brand name hyperlink to home page with black color-->
+      <h1 id="title">
+        <a href="/" style="text-decoration: none"
+          ><span style="color: black">The Armoire</span></a
+        >
+      </h1>
+      <a href="/shop">Shop</a>
+      <a href="/cart">Cart</a>
+      <a href="/contact">Contact</a>
+      {% if session['username'] %}
+      <a href="/customization">Customization</a>
+      <a href="/user-photo-upload">Photos</a>
+      <div class="topright">
+        <div class="dropdown">
+          <button class="dropbtn">
+            {{ session['username'] }}
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
             <a href="/logout">Logout</a>
-            <a href="/user-photo-upload">Photos</a>
-        {% else %}
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-        {% endif %}
-        <!--Main body Section-->
-        {% if session['username'] %}
-            <p>Hello, {{ session['username'] }}</p>
-        {% else %}
-            <p>Not logged in</p>
-        {% endif %}
-    </nav>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="topright">
+        <head>
+          <a href="/register">Register</a>
+          <a href="/login">Login</a>
+        </head>
+      </div>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
       {% endif %}
-    {% endwith %}
-    {% block main %}
-    {% endblock %}
-</body>
-
+      <!--Main body Section-->
+      {% if session['username'] %}
+      <p>Hello, {{ session['username'] }}</p>
+      {% else %}
+      <p>Not logged in</p>
+      {% endif %}
+    </nav>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %} {% block main %} {% endblock %}
+  </body>
 </html>
