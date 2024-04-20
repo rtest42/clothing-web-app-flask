@@ -69,7 +69,7 @@ body {
     color: rgb(0, 0, 0);
     padding: 14px 16px;
     margin: 0;
-    left 16px;
+    left: 16px;
     /* Important for vertical align on mobile phones */
 }
 
