@@ -31,6 +31,7 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
+/*Top nav stuff*/
 #top-nav {
     position: -webkit-sticky;
     position: sticky;
@@ -47,11 +48,65 @@ body {
     display: inline;
 }
 
-a {
-    color:black
+.topright {
+    position: -webkit-sticky;
+    /* Safari */
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 18px;
 }
 
-a:hover{
+.dropdown {
+    position: left;
+    overflow: hidden;
+}
+
+.dropdown .dropbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: rgb(0, 0, 0);
+    padding: 14px 16px;
+    margin: 0;
+    left 16px;
+    /* Important for vertical align on mobile phones */
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: left;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    display: block;
+    text-align: right;
+}
+
+/* Add a grey background color to dropdown links on hover */
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+a {
+    color: black
+}
+
+a:hover {
     color: red;
 }
 
@@ -63,7 +118,9 @@ a:hover{
     display: block;
 }
 
-table, th, td {
+table,
+th,
+td {
     border: 1px solid black;
     border-collapse: collapse;
 }
