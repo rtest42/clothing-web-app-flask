@@ -210,7 +210,7 @@ def shop():
                 'q': search_query,
                 'api_key': serpapi_key,
                 'engine': 'google_shopping',
-                'tbs': dropdown[request.form.get('filter')]
+                'tbs': dropdown[request.form.get('filter', 'relevance')]
             }
 
             flash("Query successful.")
