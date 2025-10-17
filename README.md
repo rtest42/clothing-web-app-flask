@@ -1,7 +1,3 @@
-# The Armoire
-
-The Armoire is a project that displays fit clothing using AI.
-
 ## Setup
 
 Make sure you are in the project folder.
